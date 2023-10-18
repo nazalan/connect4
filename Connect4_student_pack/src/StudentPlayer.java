@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -14,138 +17,251 @@ public class StudentPlayer extends Player{
 
     @Override
     public int step(Board board) {
-        int[] values=calcCol(board);
-        int value=minimax(0, 0, true, values, MIN, MAX);
+        ArrayList<Integer> validSteps = board.getValidSteps();
+        int bestMove = -1;
+        int bestValue = Integer.MIN_VALUE;
+        int alpha = Integer.MIN_VALUE;
+        int beta = Integer.MAX_VALUE;
 
-        return 0;
-    }
-    public static int findIndex(int arr[], int t) {
+        for (int step : validSteps) {
+            Board boardCopy = new Board(board);
+            boardCopy.step(playerIndex, step);
 
-        // if array is Null
-        if (arr == null) {
-            return -1;
-        }
+            int value = minimax(4, boardCopy, alpha, beta, false);
 
-        // find length of array
-        int len = arr.length;
-        int i = 0;
-
-        // traverse in the array
-        while (i < len) {
-
-            // if the i-th element is t
-            // then return the index
-            if (arr[i] == t) {
-                return i;
+            if (value > bestValue) {
+                bestValue = value;
+                bestMove = step;
             }
-            else {
-                i = i + 1;
+            alpha = Math.max(alpha, bestValue);
+
+            if (beta <= alpha) {
+                break; // Átbéta vágás
             }
         }
-        return -1;
+
+        return bestMove;
     }
 
-    public int minimax(int depth, int nodeIndex, Boolean maximizingPlayer, int values[], int alpha, int beta){
-        if (depth == 3)
-            return values[nodeIndex];
-
-        if (maximizingPlayer)
-        {
-            int best = MIN;
-            for (int i = 0; i < 2; i++)
-            {
-                int val = minimax(depth + 1, nodeIndex * 2 + i,
-                        false, values, alpha, beta);
-                best = Math.max(best, val);
-                alpha = Math.max(alpha, best);
-
-                if (beta <= alpha)
-                    break;
-            }
-            return best;
+    // Minimax algorithm with alpha-beta pruning
+    public int minimax(int depth, Board board, int alpha, int beta, boolean maximizingPlayer) {
+        if (depth == 0 || board.gameEnded()) {
+            return calcScore(board);
         }
-        else
-        {
-            int best = MAX;
-            for (int i = 0; i < 2; i++)
-            {
 
-                int val = minimax(depth + 1, nodeIndex * 2 + i,
-                        true, values, alpha, beta);
-                best = Math.min(best, val);
-                beta = Math.min(beta, best);
+        if (maximizingPlayer) {
+            int bestValue = Integer.MIN_VALUE;
+            for (int step : board.getValidSteps()) {
+                Board boardCopy = new Board(board);
+                boardCopy.step(playerIndex, step);
 
-                if (beta <= alpha)
-                    break;
-            }
-            return best;
-        }
-    }
+                int value = minimax(depth - 1, boardCopy, alpha, beta, false);
+                bestValue = Math.max(bestValue, value);
+                alpha = Math.max(alpha, bestValue);
 
-    public int calcScore()
-    {
-        return 0;
-    }
-
-    private int[] calcCol(Board board) {
-        int sum[] = {50, 50, 50, 50, 50, 50, 50};
-        for(int col = 0; col < 7; col++) {
-            for (int row=0; row<6; row++) {
-                if (board.getState()[row][col] == 2) {
-                    sum[col]++;
-                }
-                else if (board.getState()[row][col] == 1) {
-                    sum[col]--;
+                if (beta <= alpha) {
+                    break; // Átbéta vágás
                 }
             }
-            System.out.println("Oszlop: " + col+ " eretek: "+sum[col]);
+            return bestValue;
+        } else {
+            int bestValue = Integer.MAX_VALUE;
+            for (int step : board.getValidSteps()) {
+                Board boardCopy = new Board(board);
+                boardCopy.step(3 - playerIndex, step);
+
+                int value = minimax(depth - 1, boardCopy, alpha, beta, true);
+                bestValue = Math.min(bestValue, value);
+                beta = Math.min(beta, bestValue);
+
+                if (beta <= alpha) {
+                    break; // Átbéta vágás
+                }
+            }
+            return bestValue;
         }
-        return sum;
     }
-//
-//    private boolean CalcNDialog(int row, int col, int playerIndex) {
-//        int nInADiagonal = 0;
-//
-//        int stepLeftUp = min(nToConnect - 1, min(row, col));
-//        int stepRightDown = min(nToConnect, min(boardSize[0] - row, boardSize[1] - col));
-//
-//        if ((stepLeftUp + stepRightDown) < nToConnect)
-//            return false;
-//
-//        for (int diagonalStep = -stepLeftUp; diagonalStep < stepRightDown; diagonalStep++) {
-//            if (state[row + diagonalStep][col + diagonalStep] == playerIndex) {
-//                nInADiagonal++;
-//                if (nInADiagonal == nToConnect) {
-//                    winner = playerIndex;
-//                    return true;
-//                }
-//            } else {
-//                nInADiagonal = 0;
-//            }
-//        }
-//        return false;
-//    }
-//
-//    private boolean calcDialog(int row, int col, int playerIndex) {
-//        int nInASkewDiagonal = 0;
-//
-//        int stepLeftDown = min(nToConnect - 1, min(boardSize[0] - row - 1, col));
-//        int stepRightUp = min(nToConnect, min(row + 1, boardSize[1] - col));
-//
-//        if ((stepRightUp + stepLeftDown) < nToConnect)
-//            return false;
-//
-//        for (int skewDiagonalStep = -stepLeftDown; skewDiagonalStep < stepRightUp; skewDiagonalStep++) {
-//            if (state[row - skewDiagonalStep][col + skewDiagonalStep] == playerIndex) {
-//                nInASkewDiagonal++;
-//                if (nInASkewDiagonal == nToConnect) {
-//                    winner = playerIndex;
-//                    return true;
-//                }
-//            } else
-//                nInASkewDiagonal = 0;
-//        }
-//        return false;
-//    }
+
+    public int calcScore(Board board) {
+        int playerIndex = this.playerIndex; // Játékos indexe (1 vagy 2)
+
+        int score = 0;
+
+        // Ellenőrizd a sorokat, oszlopokat és átlókat
+        for (int row = 0; row < boardSize[0]; row++) {
+            for (int col = 0; col < boardSize[1]; col++) {
+                int rowScore = evaluateRow(board, row, col, playerIndex);
+                int colScore = evaluateColumn(board, row, col, playerIndex);
+                int diagScore = evaluateDiagonal(board, row, col, playerIndex);
+
+                // Súlyok finomhangolása
+                score +=  rowScore + colScore +  diagScore;
+            }
+        }
+        return score;
+    }
+
+    public int evaluateRow(Board board, int row, int col, int playerIndex) {
+        int boardSizeX = 7;
+        int opponentIndex = 3 - playerIndex; // Az ellenfél indexe (1 vagy 2)
+
+        int maxScore = 0;
+
+        for (int startCol = Math.max(0, col - nToConnect + 1); startCol <= col; startCol++) {
+            int endCol = Math.min(boardSizeX, startCol + nToConnect);
+
+            int playerCount = 0;
+            int opponentCount = 0;
+
+            for (int c = startCol; c < endCol; c++) {
+                if (board.getState()[row][c] == playerIndex) {
+                    playerCount++;
+                } else if (board.getState()[row][c] == opponentIndex) {
+                    opponentCount++;
+                }
+            }
+
+            if (opponentCount == 0) {
+                // Nincs ellenfél korong a sorban
+                if (playerCount == nToConnect) {
+                    // Játékos nyert
+                    return MAX; // Maximum érték a nyerésért
+                } else {
+                    // Pontokat adunk az összefüggő saját korongokért
+                    maxScore = Math.max(maxScore, playerCount * 10); // Finomhangolás itt
+                }
+            } else if (playerCount == 0) {
+                // Nincs saját korong a sorban
+                if (opponentCount == nToConnect) {
+                    // Az ellenfél nyert
+                    return -MAX; // Minimum érték az ellenfél nyeréséért
+                }
+                // Pontokat adunk az összefüggő ellenfél korongokért
+                maxScore = Math.max(maxScore, opponentCount * 10); // Finomhangolás itt
+            }
+        }
+        return maxScore;
+    }
+
+    public int evaluateColumn(Board board, int row, int col, int playerIndex) {
+        int boardSizeY = 6;
+        int opponentIndex = 3 - playerIndex; // Az ellenfél indexe (1 vagy 2)
+
+        int maxScore = 0;
+
+        for (int startRow = Math.max(0, row - nToConnect + 1); startRow <= row; startRow++) {
+            int endRow = Math.min(boardSizeY, startRow + nToConnect);
+
+            int playerCount = 0;
+            int opponentCount = 0;
+
+            for (int r = startRow; r < endRow; r++) {
+                if (board.getState()[r][col] == playerIndex) {
+                    playerCount++;
+                } else if (board.getState()[r][col] == opponentIndex) {
+                    opponentCount++;
+                }
+            }
+
+            if (opponentCount == 0) {
+                // Nincs ellenfél korong az oszlopban
+                if (playerCount == nToConnect) {
+                    // Játékos nyert
+                    return MAX; // Maximum érték a nyerésért
+                } else {
+                    // Pontokat adunk az összefüggő saját korongokért
+                    maxScore = Math.max(maxScore, playerCount * 10); // Finomhangolás itt
+                }
+            } else if (playerCount == 0) {
+                // Nincs saját korong az oszlopban
+                if (opponentCount == nToConnect) {
+                    // Az ellenfél nyert
+                    return -MAX; // Minimum érték az ellenfél nyeréséért
+                }
+                // Pontokat adunk az összefüggő ellenfél korongokért
+                maxScore = Math.max(maxScore, opponentCount * 10); // Finomhangolás itt
+            }
+        }
+
+        return maxScore;
+    }
+
+    public int evaluateDiagonal(Board board, int row, int col, int playerIndex) {
+        int boardSizeX = 7;
+        int boardSizeY = 6;
+        int opponentIndex = 3 - playerIndex; // Az ellenfél indexe (1 vagy 2)
+
+        int maxScore = 0;
+
+        // Átlók értékelése bal felsőtől jobb alsóig
+        for (int startRow = row, startCol = col; startRow >= 0 && startCol >= 0 && startRow >= row - nToConnect + 1 && startCol >= col - nToConnect + 1; startRow--, startCol--) {
+            int endRow = Math.min(boardSizeY, startRow + nToConnect);
+            int endCol = Math.min(boardSizeX, startCol + nToConnect);
+
+            int playerCount = 0;
+            int opponentCount = 0;
+
+            for (int r = startRow, c = startCol; r < endRow && c < endCol; r++, c++) {
+                if (board.getState()[r][c] == playerIndex) {
+                    playerCount++;
+                } else if (board.getState()[r][c] == opponentIndex) {
+                    opponentCount++;
+                }
+            }
+
+            if (opponentCount == 0) {
+                if (playerCount == nToConnect) {
+                    // Játékos nyert
+                    return MAX; // Maximum érték a nyerésért
+                } else {
+                    // Pontokat adunk az összefüggő saját korongokért
+                    maxScore = Math.max(maxScore, playerCount * 10); // Finomhangolás itt
+                }
+            } else if (playerCount == 0) {
+                if (opponentCount == nToConnect) {
+                    // Az ellenfél nyert
+                    return -MAX; // Minimum érték az ellenfél nyeréséért
+                }
+                // Pontokat adunk az összefüggő ellenfél korongokért
+                maxScore = Math.max(maxScore, opponentCount * 10); // Finomhangolás itt
+            }
+        }
+
+        // Átlók értékelése bal alsótól jobb felsőig
+        for (int startRow = row, startCol = col; startRow >= 0 && startCol < boardSizeX && startRow >= row - nToConnect + 1 && startCol <= col + nToConnect - 1; startRow--, startCol++) {
+            int endRow = Math.min(boardSizeY, startRow + nToConnect);
+            int endCol = Math.max(0, startCol - nToConnect + 1);
+
+            int playerCount = 0;
+            int opponentCount = 0;
+
+            for (int r = startRow, c = startCol; r < endRow && c >= endCol; r++, c--) {
+                if (board.getState()[r][c] == playerIndex) {
+                    playerCount++;
+                } else if (board.getState()[r][c] == opponentIndex) {
+                    opponentCount++;
+                }
+            }
+
+            if (opponentCount == 0) {
+                if (playerCount == nToConnect) {
+                    // Játékos nyert
+                    return MAX; // Maximum érték a nyerésért
+                } else {
+                    // Pontokat adunk az összefüggő saját korongokért
+                    maxScore = Math.max(maxScore, playerCount * 10); // Finomhangolás itt
+                }
+            } else if (playerCount == 0) {
+                if (opponentCount == nToConnect) {
+                    // Az ellenfél nyert
+                    return -MAX; // Minimum érték az ellenfél nyeréséért
+                }
+                // Pontokat adunk az összefüggő ellenfél korongokért
+                maxScore = Math.max(maxScore, opponentCount * 10); // Finomhangolás itt
+            }
+        }
+
+        return maxScore;
+    }
 
 }
