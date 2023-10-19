@@ -5,8 +5,8 @@ public class StudentPlayer extends Player {
         super(playerIndex, boardSize, nToConnect);
     }
 
-    static int MAX = Integer.MAX_VALUE;
-    static int MIN = Integer.MIN_VALUE;
+    static int boardSizeX = 7;
+    static int boardSizeY = 6;
 
     @Override
     public int step(Board board) {
@@ -24,7 +24,6 @@ public class StudentPlayer extends Player {
             boardCopy.step(playerIndex, step);
 
             int value = minimax(6, boardCopy, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
-            System.out.println("Oszlop " + step + ": " + value);
             if (value > bestValue) {
                 bestValue = value;
                 bestMove = step;
@@ -73,28 +72,21 @@ public class StudentPlayer extends Player {
     }
 
     public int calcScore(Board board) {
-        int playerIndex = this.playerIndex;//board.getLastPlayerIndex();
-        int opponentIndex = 3 - playerIndex;
-
         int score = 0;
 
         for (int row = 0; row < boardSize[0]; row++) {
             for (int col = 0; col < boardSize[1]; col++) {
-                //if (board.getState()[row][col] == playerIndex) {
-                    int rowScore = evaluateRow(board, row, col, playerIndex);
-                    int colScore = evaluateColumn(board, row, col, playerIndex);
-                    int diagonalScore1 = evaluateDiagonalFromTopLeft(board, row, col, playerIndex);
-                    int diagonalScore2 = evaluateDiagonalFromBottomLeft(board, row, col, playerIndex);
-                    score += rowScore + colScore + diagonalScore1 + diagonalScore2;
-
-                //}
+                int rowScore = evaluateRow(board, row, col, playerIndex);
+                int colScore = evaluateColumn(board, row, col, playerIndex);
+                int diagonalScore1 = evaluateDiagonalFromTopLeft(board, row, col, playerIndex);
+                int diagonalScore2 = evaluateDiagonalFromBottomLeft(board, row, col, playerIndex);
+                score += rowScore + colScore + diagonalScore1 + diagonalScore2;
             }
         }
         return score;
     }
 
     public int evaluateRow(Board board, int row, int col, int playerIndex) {
-        int boardSizeX = 7;
         int opponentIndex = 3 - playerIndex;
 
         int maxScore = 0;
@@ -117,7 +109,7 @@ public class StudentPlayer extends Player {
                 if (playerCount == 4) {
                     maxScore = 1000;
                 } else if (playerCount == 3) {
-                    maxScore = 15;
+                    maxScore = 20;
                 } else if (playerCount == 2) {
                     maxScore = 5;
                 }
@@ -125,7 +117,7 @@ public class StudentPlayer extends Player {
                 if (opponentCount == 4) {
                     maxScore = -1000;
                 } else if (opponentCount == 3) {
-                    maxScore = -15;
+                    maxScore = -20;
                 } else if (opponentCount == 2) {
                     maxScore = -5;
                 }
@@ -136,7 +128,6 @@ public class StudentPlayer extends Player {
     }
 
     public int evaluateColumn(Board board, int row, int col, int playerIndex) {
-        int boardSizeY = 6;
         int opponentIndex = 3 - playerIndex;
 
         int maxScore = 0;
@@ -159,7 +150,7 @@ public class StudentPlayer extends Player {
                 if (playerCount == 4) {
                     maxScore = 1000;
                 } else if (playerCount == 3) {
-                    maxScore = 15;
+                    maxScore = 20;
                 } else if (playerCount == 2) {
                     maxScore = 5;
                 }
@@ -167,7 +158,7 @@ public class StudentPlayer extends Player {
                 if (opponentCount == 4) {
                     maxScore = -1000;
                 } else if (opponentCount == 3) {
-                    maxScore = -15;
+                    maxScore = -20;
                 } else if (opponentCount == 2) {
                     maxScore = -5;
                 }
@@ -178,8 +169,6 @@ public class StudentPlayer extends Player {
     }
 
     public int evaluateDiagonalFromTopLeft(Board board, int row, int col, int playerIndex) {
-        int boardSizeX = 7;
-        int boardSizeY = 6;
         int opponentIndex = 3 - playerIndex;
 
         int maxScore = 0;
@@ -206,7 +195,7 @@ public class StudentPlayer extends Player {
                 if (playerCount == 4) {
                     maxScore = 1000;
                 } else if (playerCount == 3 && emptyCount == 1) {
-                    maxScore = 15;
+                    maxScore = 20;
                 } else if (playerCount == 2 && emptyCount == 2) {
                     maxScore = 5;
                 }
@@ -214,7 +203,7 @@ public class StudentPlayer extends Player {
                 if (opponentCount == 4) {
                     maxScore = -1000;
                 } else if (opponentCount == 3 && emptyCount == 1) {
-                    maxScore = -15;
+                    maxScore = -20;
                 } else if (opponentCount == 2 && emptyCount == 2) {
                     maxScore = -5;
                 }
@@ -225,8 +214,6 @@ public class StudentPlayer extends Player {
     }
 
     public int evaluateDiagonalFromBottomLeft(Board board, int row, int col, int playerIndex) {
-        int boardSizeX = 7;
-        int boardSizeY = 6;
         int opponentIndex = 3 - playerIndex;
 
         int maxScore = 0;
@@ -250,7 +237,7 @@ public class StudentPlayer extends Player {
                 if (playerCount == 4) {
                     maxScore = 1000;
                 } else if (playerCount == 3) {
-                    maxScore = 15;
+                    maxScore = 20;
                 } else if (playerCount == 2) {
                     maxScore = 5;
                 }
@@ -258,14 +245,12 @@ public class StudentPlayer extends Player {
                 if (opponentCount == 4) {
                     maxScore = -1000;
                 } else if (opponentCount == 3) {
-                    maxScore = -15;
+                    maxScore = -20;
                 } else if (opponentCount == 2) {
                     maxScore = -5;
                 }
             }
         }
-
         return maxScore;
     }
-
 }
